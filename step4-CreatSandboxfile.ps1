@@ -1,0 +1,1 @@
+powershell.exe -File step4-GenerateSandboxConfig.ps1 -ExecutablePath "C:\Users\Sagharfadaei\Documents\Projects\trustworthy\Hello.exe" -OutputFile "MyResult.txt" -textInput "'step4 is compeleted'" -DisableNetwork

@@ -1,0 +1,16 @@
+<Configuration>
+ <!-- disable network as a Sandbox configuration options to show exmple of reducing permission of it  -->
+  <Networking>Disable</Networking>
+  <MappedFolders>
+    <MappedFolder>
+      <HostFolder>C:\Users\Sagharfadaei\Documents\Projects\trustworthy</HostFolder>
+      <SandboxFolder>C:\Users\WDAGUtilityAccount\Desktop</SandboxFolder>
+      <ReadOnly>false</ReadOnly>
+    </MappedFolder>
+  </MappedFolders>
+  <LogonCommand>
+    <!--<Command>cmd.exe /c C:\Users\WDAGUtilityAccount\Desktop\task1.cmd</Command> -->
+    <Command>powershell.exe -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy Bypass -Scope Process; &amp; 'C:\Users\WDAGUtilityAccount\Desktop\task1.ps1'"</Command>
+  </LogonCommand>
+</Configuration>
+
