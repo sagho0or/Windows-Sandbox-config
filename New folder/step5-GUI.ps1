@@ -34,69 +34,82 @@ $browseButton.Add_Click({
 })
 $form.Controls.Add($browseButton)
 
-# Text input
-$textInputLabel = New-Object System.Windows.Forms.Label
-$textInputLabel.Location = New-Object System.Drawing.Point(10,70)
-$textInputLabel.Size = New-Object System.Drawing.Size(480,20)
-$textInputLabel.Text = 'Text Input:'
-$form.Controls.Add($textInputLabel)
+# Custom Command input
+$customCmdLabel = New-Object System.Windows.Forms.Label
+$customCmdLabel.Location = New-Object System.Drawing.Point(10,70)
+$customCmdLabel.Size = New-Object System.Drawing.Size(480,20)
+$customCmdLabel.Text = 'Custom Command (optional):'
+$form.Controls.Add($customCmdLabel)
 
-$textInputTextBox = New-Object System.Windows.Forms.TextBox
-$textInputTextBox.Location = New-Object System.Drawing.Point(10,90)
-$textInputTextBox.Size = New-Object System.Drawing.Size(460,20)
-$form.Controls.Add($textInputTextBox)
+$customCmdTextBox = New-Object System.Windows.Forms.TextBox
+$customCmdTextBox.Location = New-Object System.Drawing.Point(10,90)
+$customCmdTextBox.Size = New-Object System.Drawing.Size(460,20)
+$customCmdTextBox.Multiline = $true
+$customCmdTextBox.Height = 60
+$form.Controls.Add($customCmdTextBox)
 
 # Output file input
 $outputLabel = New-Object System.Windows.Forms.Label
-$outputLabel.Location = New-Object System.Drawing.Point(10,120)
+$outputLabel.Location = New-Object System.Drawing.Point(10,160)
 $outputLabel.Size = New-Object System.Drawing.Size(480,20)
 $outputLabel.Text = 'Output File Name (Ex: output.txt):'
 $form.Controls.Add($outputLabel)
 
 $outputTextBox = New-Object System.Windows.Forms.TextBox
-$outputTextBox.Location = New-Object System.Drawing.Point(10,140)
+$outputTextBox.Location = New-Object System.Drawing.Point(10,180)
 $outputTextBox.Size = New-Object System.Drawing.Size(460,20)
 $form.Controls.Add($outputTextBox)
 
 # Network checkbox
 $networkCheckBox = New-Object System.Windows.Forms.CheckBox
-$networkCheckBox.Location = New-Object System.Drawing.Point(15,195)
+$networkCheckBox.Location = New-Object System.Drawing.Point(15,245)
 $networkCheckBox.Size = New-Object System.Drawing.Size(150,35)
 $networkCheckBox.Text = 'Disable Network'
 $form.Controls.Add($networkCheckBox)
 
 # Read-Only checkbox
 $readOnlyCheckBox = New-Object System.Windows.Forms.CheckBox
-$readOnlyCheckBox.Location = New-Object System.Drawing.Point(15,170)
+$readOnlyCheckBox.Location = New-Object System.Drawing.Point(15,210)
 $readOnlyCheckBox.Size = New-Object System.Drawing.Size(150,35)
 $readOnlyCheckBox.Text = 'Read-Only'
 $form.Controls.Add($readOnlyCheckBox)
 
 # Run button
 $runButton = New-Object System.Windows.Forms.Button
-$runButton.Location = New-Object System.Drawing.Point(380,170)
+$runButton.Location = New-Object System.Drawing.Point(380,210)
 $runButton.Size = New-Object System.Drawing.Size(90,35)
 $runButton.Text = 'Run'
 $runButton.Add_Click({
-
-    # Construct the command with parameters from the form
     $ExecutablePath = $pathTextBox.Text
     $OutputFile = $outputTextBox.Text
-    $TextInput = $textInputTextBox.Text
     $DisableNetwork = $networkCheckBox.Checked
     $ReadOnly = $readOnlyCheckBox.Checked
+    $CustomCommand = $customCmdTextBox.Text
 
-    $commandArgs = @("-ExecutablePath `"$ExecutablePath`"", "-OutputFile `"$OutputFile`"")
-    
-    if ([System.IO.Path]::GetExtension($pathTextBox.Text) -ne '.exe') {
+    # Validate the executable path
+    if ([System.IO.Path]::GetExtension($ExecutablePath) -ne '.exe') {
         [System.Windows.Forms.MessageBox]::Show("Please enter a valid path to the .exe file.", "Invalid Input", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         return
     }
 
-    if ($TextInput) {
-        $commandArgs += "-textInput `"$TextInput`""
+    $hostFolderPath = Split-Path -Path $ExecutablePath -Parent
+    $sandboxFolderPath = "C:\Users\WDAGUtilityAccount\Desktop\output"
+    $sandboxExecutableName = [System.IO.Path]::GetFileName($ExecutablePath)
+    $sandboxOutputPath = Join-Path -Path "C:\Users\WDAGUtilityAccount\Desktop\output" -ChildPath $OutputFile
+
+    $logonCommand = if ($CustomCommand) {
+        # When the user provides a custom command, ensure it's properly escaped for XML
+        [Security.SecurityElement]::Escape($CustomCommand)
+    } else {
+        # Construct a default command
+        $sandboxExecutableName = [System.IO.Path]::GetFileName($ExecutablePath)
+        $sandboxOutputPath = Join-Path -Path "C:\Users\WDAGUtilityAccount\Desktop\output" -ChildPath $OutputFile
+        "C:\Users\WDAGUtilityAccount\Desktop\output\$sandboxExecutableName | Out-File -FilePath $sandboxOutputPath"
     }
 
+    # Construct the arguments for the generation script
+    $commandArgs = @("-ExecutablePath `"$ExecutablePath`"", "-LogonCommand `"$logonCommand`"")
+    
     if ($DisableNetwork) {
         $commandArgs += "-DisableNetwork"
     }
@@ -104,10 +117,11 @@ $runButton.Add_Click({
     if ($ReadOnly) {
         $commandArgs += "-ReadOnly"
     }
-    
+
+    # Call the generation script with the constructed arguments
     $command = "powershell.exe -File step4-GenerateSandboxConfig.ps1 " + ($commandArgs -join ' ')
 
-    # Run the command
+    # Execute the command
     Invoke-Expression $command
     
     $form.Close()
