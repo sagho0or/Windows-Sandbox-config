@@ -52,7 +52,7 @@ $form.Controls.Add($customCmdTextBox)
 $outputLabel = New-Object System.Windows.Forms.Label
 $outputLabel.Location = New-Object System.Drawing.Point(10,160)
 $outputLabel.Size = New-Object System.Drawing.Size(480,20)
-$outputLabel.Text = 'Output File Name (Ex: output.txt):'
+$outputLabel.Text = 'Output File Name (optional):'
 $form.Controls.Add($outputLabel)
 
 $outputTextBox = New-Object System.Windows.Forms.TextBox
@@ -98,13 +98,22 @@ $runButton.Add_Click({
     $sandboxOutputPath = Join-Path -Path "C:\Users\WDAGUtilityAccount\Desktop\output" -ChildPath $OutputFile
 
     $logonCommand = if ($CustomCommand) {
-        # When the user provides a custom command, ensure it's properly escaped for XML
-        [Security.SecurityElement]::Escape($CustomCommand)
+        # First, escape special XML characters
+    $escapedCommand = [Security.SecurityElement]::Escape($CustomCommand)
+    
+    # Then, replace '&quot;' with actual quotation marks if needed
+    $finalCommand = $escapedCommand -replace '&quot;', '"'
+    
+    $finalCommand
     } else {
         # Construct a default command
         $sandboxExecutableName = [System.IO.Path]::GetFileName($ExecutablePath)
-        $sandboxOutputPath = Join-Path -Path "C:\Users\WDAGUtilityAccount\Desktop\output" -ChildPath $OutputFile
-        "C:\Users\WDAGUtilityAccount\Desktop\output\$sandboxExecutableName | Out-File -FilePath $sandboxOutputPath"
+        if ($OutputFile){
+            $sandboxOutputPath = Join-Path -Path "C:\Users\WDAGUtilityAccount\Desktop\output" -ChildPath $OutputFile
+            "C:\Users\WDAGUtilityAccount\Desktop\output\$sandboxExecutableName | Out-File -FilePath $sandboxOutputPath"
+        }else{
+            "C:\Users\WDAGUtilityAccount\Desktop\output\$sandboxExecutableName"
+        }
     }
 
     # Construct the arguments for the generation script
