@@ -4,8 +4,7 @@
 This tool leverages Windows Sandbox to provide a secure, isolated environment for executing and testing student-submitted code. Designed with educators in mind, it features an intuitive GUI for easy configuration and use.
 
 ## Contents
-- `step4-GenerateSandboxConfig.ps1` - PowerShell script for generating sandbox configuration files.
-- `step5-GUI.ps1` - PowerShell script for the graphical user interface.
+- `GenerateSandboxConfig.ps1` - PowerShell script for generating sandbox configuration files.
 - `UserManual.pdf` - Comprehensive user manual detailing installation, setup, and usage instructions.
 - Additional scripts and executable files as required for the tool's operation.
 
@@ -15,7 +14,7 @@ This tool leverages Windows Sandbox to provide a secure, isolated environment fo
 3. Refer to the `UserManual.pdf` for detailed setup and usage instructions.
 
 ## Usage
-Launch the GUI by double-clicking `step5-GUI.ps1`. Follow the on-screen prompts to configure and execute the sandbox environment.
+Launch `GenerateSandboxConfig.ps1` by right-clicking on it and selecting 'Run as PowerShell'. Follow the on-screen prompts to configure the sandbox environment, which will then be executed automatically
 
 ## Features
 - **Isolated Execution Environment**: Runs code in a safe, contained setup.
